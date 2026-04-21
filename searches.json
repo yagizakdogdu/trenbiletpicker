@@ -1,0 +1,30 @@
+[
+  {
+    "kalkis": "Ankara Gar, Ankara",
+    "varis": "İstanbul(Söğütlüçeşme)",
+    "kalkis_id": 98,
+    "kalkis_api_adi": "ANKARA GAR",
+    "varis_id": 1325,
+    "varis_api_adi": "İSTANBUL(SÖĞÜTLÜÇEŞME)",
+    "tarih": "2026-04-22",
+    "min_saat": "09:00",
+    "max_saat": "15:00",
+    "search_type": "DOMESTIC",
+    "bl_train_types": ["TURISTIK_TREN"],
+    "cabin_names": ["EKONOMİ"]
+  },
+  {
+    "kalkis": "İstanbul(Söğütlüçeşme)",
+    "varis": "Ankara Gar, Ankara",
+    "kalkis_id": 1325,
+    "kalkis_api_adi": "İSTANBUL(SÖĞÜTLÜÇEŞME)",
+    "varis_id": 98,
+    "varis_api_adi": "ANKARA GAR",
+    "tarih": "2026-04-22",
+    "min_saat": "09:00",
+    "max_saat": "15:00",
+    "search_type": "DOMESTIC",
+    "bl_train_types": ["TURISTIK_TREN"],
+    "cabin_names": ["EKONOMİ"]
+  }
+]
