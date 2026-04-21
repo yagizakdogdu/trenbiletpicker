@@ -9,6 +9,7 @@ available seats are reported by the TCDD web API.
 from __future__ import annotations
 
 import argparse
+import base64
 import html
 import json
 import logging
@@ -17,7 +18,7 @@ import sys
 import time
 import unicodedata
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -256,6 +257,51 @@ def truthy_env(name: str, default: bool = False) -> bool:
     if value is None:
         return default
     return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def decode_jwt_payload(token: str) -> Optional[Dict[str, Any]]:
+    token = token.strip()
+    if token.lower().startswith("bearer "):
+        token = token.split(None, 1)[1]
+
+    parts = token.split(".")
+    if len(parts) < 2:
+        return None
+
+    payload = parts[1] + "=" * (-len(parts[1]) % 4)
+    try:
+        decoded = base64.urlsafe_b64decode(payload.encode("ascii")).decode("utf-8")
+        data = json.loads(decoded)
+    except (ValueError, UnicodeDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def expired_authorization_message(now: Optional[datetime] = None) -> Optional[str]:
+    authorization = os.getenv("TCDD_AUTHORIZATION", "").strip()
+    if not authorization:
+        return None
+
+    payload = decode_jwt_payload(authorization)
+    if not payload or payload.get("exp") is None:
+        return None
+
+    try:
+        expires_at = datetime.fromtimestamp(int(payload["exp"]), timezone.utc)
+    except (TypeError, ValueError, OSError):
+        return None
+
+    current_time = now or datetime.now(timezone.utc)
+    if expires_at > current_time:
+        return None
+
+    return (
+        "TCDD_AUTHORIZATION süresi dolmuş "
+        f"({expires_at.strftime('%Y-%m-%d %H:%M UTC')}). "
+        "ebilet.tcddtasimacilik.gov.tr > Network > train-availability "
+        "isteğinden güncel Authorization header'ını alıp .env.local ve "
+        "Vercel Environment Variables içine tekrar ekle."
+    )
 
 
 def epoch_to_local_hhmm(value: float) -> Optional[str]:
@@ -663,7 +709,10 @@ def run_cycle(
                     "Bu boş koltuk yok demek değil. TCDD isteği engellendi; "
                     ".env.local içine güncel TCDD_AUTHORIZATION ve gerekirse "
                     "TCDD_COOKIE eklenmeli."
-            )
+                )
+                auth_error = expired_authorization_message()
+                if auth_error:
+                    log.error(auth_error)
             results = []
         except requests.RequestException as exc:
             query_failed = True

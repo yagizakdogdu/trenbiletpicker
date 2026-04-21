@@ -23,6 +23,7 @@ from tcdd_bot import (
     build_headers,
     build_message,
     build_query_params,
+    expired_authorization_message,
     format_time_for_message,
     get_int_env,
     load_dotenv,
@@ -687,7 +688,6 @@ def run_searches(
         return [{"title": "Form", "results": [], "error": " ".join(errors)}]
 
     searches = build_searches_from_form(form)
-
     tcdd = TCDDClient(
         api_url=DEFAULT_TCDD_API_URL,
         headers=build_headers(),
@@ -705,7 +705,17 @@ def run_searches(
         try:
             results = tcdd.query(search)
         except TCDDAPIError as exc:
-            runs.append({"title": title, "results": [], "error": str(exc)})
+            error = str(exc)
+            if exc.status_code in (401, 403):
+                auth_error = expired_authorization_message()
+                if auth_error:
+                    error = f"{error} | {auth_error}"
+                else:
+                    error = (
+                        f"{error} | Lokal çalışıp Vercel'de 403 veriyorsa "
+                        "TCDD büyük ihtimalle Vercel sunucu IP'sini engelliyor."
+                    )
+            runs.append({"title": title, "results": [], "error": error})
             continue
         except Exception as exc:
             runs.append({"title": title, "results": [], "error": str(exc)})

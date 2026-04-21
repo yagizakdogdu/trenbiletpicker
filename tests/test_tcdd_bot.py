@@ -1,6 +1,20 @@
+import base64
+import json
 import unittest
+from datetime import datetime, timezone
+from unittest import mock
 
-from tcdd_bot import Search, build_payload, parse_availability
+from tcdd_bot import (
+    Search,
+    build_payload,
+    expired_authorization_message,
+    parse_availability,
+)
+
+
+def fake_jwt(payload):
+    encoded = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip("=")
+    return f"header.{encoded}.signature"
 
 
 class TcddBotTests(unittest.TestCase):
@@ -166,6 +180,25 @@ class TcddBotTests(unittest.TestCase):
                 }
             ],
         )
+
+    def test_expired_authorization_message_detects_expired_jwt(self):
+        token = fake_jwt({"exp": 1000})
+        with mock.patch.dict("os.environ", {"TCDD_AUTHORIZATION": token}):
+            message = expired_authorization_message(
+                now=datetime.fromtimestamp(2000, timezone.utc)
+            )
+
+        self.assertIsNotNone(message)
+        self.assertIn("süresi dolmuş", message)
+
+    def test_expired_authorization_message_allows_current_jwt(self):
+        token = fake_jwt({"exp": 3000})
+        with mock.patch.dict("os.environ", {"TCDD_AUTHORIZATION": token}):
+            message = expired_authorization_message(
+                now=datetime.fromtimestamp(2000, timezone.utc)
+            )
+
+        self.assertIsNone(message)
 
 
 if __name__ == "__main__":
