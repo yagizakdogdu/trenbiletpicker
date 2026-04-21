@@ -48,6 +48,24 @@ Panelde `Çalıştır` tek sefer sorgular. `Takibi Başlat`, `.env.local`
 icindeki `CHECK_INTERVAL` degerine gore, varsayilan 120 saniyede bir sorgular.
 `Takibi Durdur` ile arka plan takibini kapatabilirsin.
 
+## Vercel
+
+Vercel icin `app.py` Flask entrypoint'i vardir. Vercel Dashboard > Settings >
+Environment Variables altina `.env.local` icindeki gizli degerleri ekle:
+
+```env
+TELEGRAM_TOKEN=...
+CHAT_ID=...
+TCDD_AUTHORIZATION=...
+TCDD_UNIT_ID=3895
+TCDD_USER_AGENT=...
+TCDD_ACCEPT_LANGUAGE=tr
+```
+
+Vercel serverless ortaminda lokal paneldeki 120 saniyelik arka plan takip modu
+kalici calismaz. Vercel deployunda `Çalıştır` tek sefer sorgu yapar; surekli
+takip icin lokal `python3 web_app.py` veya ayri bir worker/cron gerekir.
+
 ## Notlar
 
 - TCDD'nin kullandigi endpoint resmi ve sabit bir public API gibi
