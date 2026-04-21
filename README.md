@@ -1,6 +1,6 @@
-# TCDD YHT Bos Koltuk Takip Botu
+#Bos Koltuk Takip Botu
 
-Birden fazla TCDD/YHT seferini belirli araliklarla kontrol eder. Bos koltuk
+Birden fazla seferini belirli araliklarla kontrol eder. Bos koltuk
 bulursa Telegram uzerinden bildirim gonderir.
 
 ## Kurulum
